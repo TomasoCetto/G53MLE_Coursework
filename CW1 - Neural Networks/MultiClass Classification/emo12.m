@@ -50,22 +50,24 @@ for i = 1: K
     
     %training
     [net, tr] = train(net,input, labels);
-    trArr = horzcat(trArr,tr);                                                          %store the training result
-    confArr = horzcat(confArr,confusion(labels(:,testInd) ,sim(net,input(:,testInd)))); %store 1-accuracy
-    plotconfusion(labels(:,testInd) ,sim(net,input(:,testInd)));                        %plot confusion matrix
-    confMat(labels(:,testInd) ,roundClass(sim(net,input(:,testInd))));                  %confusion matrix of rounded output
+    trArr = horzcat(trArr,tr);              %store the training result
+    
+    %testing: confusion and accuracy
+    confArr = horzcat(confArr,confusion(labels(:,testInd) ,sim(net,input(:,testInd)))); %store 1-accuracy of network's output
+    plotconfusion(labels(:,testInd) ,sim(net,input(:,testInd)));                        %plot confusion matrix of network's output
+    confMat(labels(:,testInd) ,roundClass(sim(net,input(:,testInd))));                  %confusion matrix of network's rounded output
 end
 
 % % Display records
-disp('best_vperf for each fold:');
+disp('best_vperf in each fold:');
 for i=1:10
     display([num2str(trArr(i).best_vperf)]);
 end
-disp('best_epoch for each fold:');
+disp('best_epoch in each fold:');
 for i=1:10
 display([num2str(trArr(i).best_epoch)]);
 end
-disp('accuracy for each fold:');
+disp('accuracy in each fold:');
 for i=1:10
     display([num2str(abs(1-confArr(i)))]);
 end
