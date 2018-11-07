@@ -5,7 +5,7 @@ inputs = reshape(points,[150, 66*2]);
 % inputs = reshape(points,[66*2,150]);
 targets = labels';
 
-choose_attribute(inputs, targets)
+choose_attribute(inputs, targets);
 
 % tree = fitctree(inputs,targets);
 
@@ -18,7 +18,7 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 
 	% TODO: compare sides to make sure the inputs match
 	
-	[sampleSize, attributes] = size(features)
+	[sampleSize, attributes] = size(features);
 
 
 	% if (sampleSize != targets.length):
@@ -34,6 +34,7 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 	bestThreshold = 0;
 	bestGain = 0;
 
+	% attributes = 10;
  	for i=1:attributes
 		% TODO: calculate the estimate on informatton contaied
 		entropy = Calculate_Entropy(p,n)
@@ -81,7 +82,7 @@ end
 function t = getTargets(indexes, targets)
 	t = [];
 	for i=1:length(indexes)
-		t = [t, targets(indexes(i))]
+		t = [t, targets(indexes(i))];
 	end
 	% return t;
 end	

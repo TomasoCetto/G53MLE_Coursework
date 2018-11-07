@@ -19,4 +19,3 @@ function entropy = Calculate_Entropy(p, n)
 
 	return (entropy = - posProb*log2(posProb) - negProb*log2(negProb))
 end
-
