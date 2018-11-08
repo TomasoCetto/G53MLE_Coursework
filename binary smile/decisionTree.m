@@ -18,7 +18,7 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 
 	% TODO: compare sides to make sure the inputs match
 	
-	[sampleSize, attributes] = size(features);
+	[sampleSize, attributeSize] = size(features);		%sampleSize=150, attributeSize=132
 
 
 	% if (sampleSize != targets.length):
@@ -26,18 +26,21 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 		% return
 
 
-	% TODO: Calculate the number of positive and neegativ sampleSize
-	
-	[p, n] = Calculate_Ratio(targets)
+	% Calculate the number of positive and negative sampleSize
+	[p, n] = Calculate_Ratio(targets);
+
 	threshold = 0;
 	bestAttribute = 0;
 	bestThreshold = 0;
-	bestGain = 0;
+	bestGain = 0; 					%the best gain for all possible combinations
+	gainList = zeros(1,attributeSize);
+	bestlp = 0;bestln=0;bestrn=0;bestrp=0;
 
-	% attributes = 10;
- 	for i=1:attributes
-		% TODO: calculate the estimate on informatton contaied
-		entropy = Calculate_Entropy(p,n)
+	% attributeSize = 1;
+ 	for i=1:attributeSize
+		% calculate the estimate entropy on informatton contaied
+		entropy = Calculate_Entropy(p,n);
+		% bestfeatureG = 0;
 		for j=1:sampleSize
 			threshold = features(j,i)
 			leftChild = [];
@@ -59,23 +62,34 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 				end
 			end
 
-			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets))
-			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets))
+			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets));
+			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets));
 			% remainder = (lp+ln)/(p+n)*Calculate_Entropy(lp, ln) + (rp+rn)/(p+n)*Calculate_Entropy(rp, rn)
 			remainder = Calculate_Remainder(lp,ln,rp,rn)
 			gain = entropy - remainder;
+			% if gain > bestfeatureG
+			% 	bestfeatureG = gain;
+			% end
 			if gain > bestGain
 				bestGain = gain;
 				bestAttribute = i;
 				bestThreshold = threshold;
+				bestln = ln;bestrp=rp;bestrn=rn;bestlp=lp;
 			end
 		end
+
+		% gainList(i) = bestfeatureG;
 	end
 
 	best_threshold = bestThreshold
 	bestGain
 	best_feature = bestAttribute
+	% gainList
 	% return (best_feature, best_threshold)
+	bestlp
+	bestrn
+	bestln
+	bestrp
 end
 
 
@@ -109,7 +123,7 @@ function entropy = Calculate_Entropy(p, n)
 	posProb = p / (p+n);
 	negProb = n / (p+n);
 
-	entropy = - posProb*log2(posProb) - negProb*log2(negProb)
+	entropy = - (posProb*log2(posProb)) - (negProb*log2(negProb))
 end
 
 
