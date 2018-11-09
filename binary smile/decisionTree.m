@@ -1,7 +1,7 @@
 load('facialPoints.mat');
 load('labels.mat');
 
-inputs = reshape(points,[150, 66*2]);
+inputs = reshape(points,[66*2, 150])';
 % inputs = reshape(points,[66*2,150]);
 targets = labels';
 
@@ -37,15 +37,16 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 	threshold = 0;
 	bestAttribute = 0;
 	bestThreshold = 0;
-	bestGain = 0; 					%the best gain for all possible combinations
-	gainList = zeros(1,attributeSize);
+	bestGain = 0;bestRemainder = Inf; 					%the best gain for all possible combinations
+	gainList = zeros(1,attributeSize);remainderList = gainList;
 	bestlp = 0;bestln=0;bestrn=0;bestrp=0;
+	entropy = Calculate_Entropy(p,n);
 
 	% attributes = 10;
+	attributeSize = 80
  	for i=1:attributeSize
 		% TODO: calculate the estimate on informatton contaied
-		entropy = Calculate_Entropy(p,n);
-		% bestfeatureG = 0;
+		bestfeatureG = 0; bestfeatureR = 0;
 		for j=1:sampleSize
 			threshold = features(j,i)
 			leftChild = [];
@@ -74,27 +75,35 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 			% remainder = (lp+ln)/(p+n)*Calculate_Entropy(lp, ln) + (rp+rn)/(p+n)*Calculate_Entropy(rp, rn)
 			remainder = Calculate_Remainder(lp,ln,rp,rn)
 			gain = entropy - remainder;
-			% if gain > bestfeatureG
-			% 	bestfeatureG = gain;
-			% end
-			if gain >= bestGain
+			
+			if gain > bestfeatureG
+				bestfeatureG = gain;
+				bestfeatureR = remainder;
+			end
+			
+			if gain > bestGain
 				bestGain = gain;
 				bestAttribute = i;
 				bestThreshold = threshold;
+				bestRemainder = remainder;
 				bestln = ln;bestrp=rp;bestrn=rn;bestlp=lp;
 			end
 		end
-		% gainList(i) = bestfeatureG;
+		gainList(i) = bestfeatureG;
+		remainderList(i) = bestfeatureR;
 	end
 
 	best_threshold = bestThreshold
-	bestGain
 	best_feature = bestAttribute
+	bestGain
+	bestRemainder
 	% return (best_feature, best_threshold)
 	bestlp
 	bestln
 	bestrp
 	bestrn
+	gainList
+	remainderList
 end    
 
 function [leftTreeIndex rightTreeIndex] = split(inputs, threshold, best_feature)
@@ -157,13 +166,13 @@ function entropy = Calculate_Entropy(p, n)
 	end
 
 	% entropy = - posProb*log2(posProb) - negProb*log2(negProb)
-	entropy = entropyOne + entropyTwo
+	entropy = entropyOne + entropyTwo;
 end
 
 
 function remainder = Calculate_Remainder(lp, ln, rp, rn)
 	total = lp+ln+rp+rn;
-	remainder = (lp+ln)/total*Calculate_Entropy(lp, ln) + (rp+rn)/total*Calculate_Entropy(rp, rn)
+	remainder = (lp+ln)/total*Calculate_Entropy(lp, ln) + (rp+rn)/total*Calculate_Entropy(rp, rn);
 end
 
 
