@@ -1,29 +1,81 @@
 load('facialPoints.mat');
 load('labels.mat');
 
-inputs = reshape(points,[66*2, 150])';
+inputs = reshape(points,[150, 66*2]);
 % inputs = reshape(points,[66*2,150]);
-targets = labels';
+targets = labels;
 
-% intialising tree and subtrees
-    %tree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
-    %leftTree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
-    %rightTree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
+tree = decisionTreeLearning(inputs, targets);
 
-
-[best_feature,best_threshold] = choose_attribute(inputs, targets);
-[leftTreeIndex rightTreeIndex] = split(inputs, best_threshold, best_feature);
 % tree = fitctree(inputs,targets);
-
-
 % DrawDecisionTree(tree, "myTree")
 
- 
+
+
+
+function [tree] = decisionTreeLearning(inputs, targets)
+
+    % intialising tree and subtrees
+%     tree = struct('op', "", 'kids', cell(1,2), 'class', [], 'attribute', 0,'threshold', 0);
+
+    if sum(targets(:)) == size(targets,2) || sum(targets(:)) == 0
+        return;   % return label
+    else
+        [best_feature,best_threshold] = choose_attribute(inputs, targets);
+        fprintf("best_feature = %d\nbest_threshold = %f\n", best_feature, best_threshold);
+      
+        tree.op = best_feature;
+        tree.kids = cell(1,2);
+        tree.class = '';
+        tree.attribute = best_feature;
+        tree.threshold = best_threshold;
+
+        [leftTreeIndex, rightTreeIndex] = split(inputs, best_threshold, best_feature);
+        test1 = leftTreeIndex;
+        if size(leftTreeIndex) == 0
+            fprintf("empty splited sample\n");
+            tree.class = majority_value(targets(leftTreeIndex));
+        else
+            fprintf("Do DTL\n");
+            leftTree = decisionTreeLearning(inputs(test1,:), targets(leftTreeIndex));
+            tree.kids{1,1} = leftTree;
+        end
+        
+         if size(rightTreeIndex) == 0
+            fprintf("empty splited sample\n");
+            tree.class = majority_value(targets(rightTreeIndex));
+        else
+            fprintf("Do DTL\n");
+            rightTree = decisionTreeLearning(inputs(rightTreeIndex,:), targets(rightTreeIndex));
+            tree.kids{1,2} = rightTree;
+         end
+    end
+
+end
+
+
+function label = majority_value(targets)
+    n=0;
+    p=0;
+    for i=1:length(targets)
+        if targets(i) == 1
+            p = p + 1;
+        else
+            n = n +1;
+        end
+    end
+    if n<p
+        label=1;
+    else
+        label=0;
+    end
+end
+    
 function [best_feature, best_threshold] = choose_attribute(features, targets)
 
 	% TODO: compare sides to make sure the inputs match
 	
-	[sampleSize, attributeSize] = size(features);
+	[sampleSize, attributes] = size(features);
 
 
 	% if (sampleSize != targets.length):
@@ -33,22 +85,18 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 
 	% TODO: Calculate the number of positive and neegativ sampleSize
 	
-	[p, n] = Calculate_Ratio(targets)
+	[p, n] = Calculate_Ratio(targets);
 	threshold = 0;
 	bestAttribute = 0;
 	bestThreshold = 0;
-	bestGain = 0;bestRemainder = Inf; 					%the best gain for all possible combinations
-	gainList = zeros(1,attributeSize);remainderList = gainList;
-	bestlp = 0;bestln=0;bestrn=0;bestrp=0;
-	entropy = Calculate_Entropy(p,n);
+	bestGain = 0;
 
 	% attributes = 10;
-	attributeSize = 80
- 	for i=1:attributeSize
+ 	for i=1:attributes
 		% TODO: calculate the estimate on informatton contaied
-		bestfeatureG = 0; bestfeatureR = 0;
+		entropy = Calculate_Entropy(p,n);
 		for j=1:sampleSize
-			threshold = features(j,i)
+			threshold = features(j,i);
 			leftChild = [];
 			rightChild = [];
 			% leftChildPos = 0;
@@ -56,61 +104,43 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 			% rightChildPos = 0;
 			% rightChildNeg = 0;
 
-			% for x=1:sampleSize
-			% 	if features(x,i) > threshold
-			% 		leftChild = [leftChild, x];
-			% 		% leftChildNeg++;
-			% 		% leftChildPos++;
-			% 	else
-			% 		rightChild = [rightChild, x];
-			% 		% rightChildNeg++;
-			% 		% rightChildPos++;
-			% 	end
-			% end
-
-			[leftChild,rightChild] = split(features, threshold, i);
-
-			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets))
-			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets))
-			% remainder = (lp+ln)/(p+n)*Calculate_Entropy(lp, ln) + (rp+rn)/(p+n)*Calculate_Entropy(rp, rn)
-			remainder = Calculate_Remainder(lp,ln,rp,rn)
-			gain = entropy - remainder;
-			
-			if gain > bestfeatureG
-				bestfeatureG = gain;
-				bestfeatureR = remainder;
+			for x=1:sampleSize
+				if features(x,i) > threshold
+					leftChild = [leftChild, x];
+					% leftChildNeg++;
+					% leftChildPos++;
+				else
+					rightChild = [rightChild, x];
+					% rightChildNeg++;
+					% rightChildPos++;
+				end
 			end
-			
+
+			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets));
+			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets));
+			% remainder = (lp+ln)/(p+n)*Calculate_Entropy(lp, ln) + (rp+rn)/(p+n)*Calculate_Entropy(rp, rn)
+			remainder = Calculate_Remainder(lp,ln,rp,rn);
+			gain = entropy - remainder;
 			if gain > bestGain
 				bestGain = gain;
 				bestAttribute = i;
 				bestThreshold = threshold;
-				bestRemainder = remainder;
-				bestln = ln;bestrp=rp;bestrn=rn;bestlp=lp;
 			end
 		end
-		gainList(i) = bestfeatureG;
-		remainderList(i) = bestfeatureR;
 	end
 
-	best_threshold = bestThreshold
-	best_feature = bestAttribute
-	bestGain
-	bestRemainder
+	best_threshold = bestThreshold;
+% 	bestGain
+    fprintf("bestGain = %f\n", bestGain);
+	best_feature = bestAttribute;
 	% return (best_feature, best_threshold)
-	bestlp
-	bestln
-	bestrp
-	bestrn
-	gainList
-	remainderList
 end    
 
-function [leftTreeIndex rightTreeIndex] = split(inputs, threshold, best_feature)
-leftTreeIndex = [];
-rightTreeIndex = [];
-  for i = 1:length(inputs)
-    if(inputs(i, best_feature) < threshold)
+function [leftTreeIndex rightTreeIndex] = split(inputs, bestThreshold, best_feature)
+leftTreeIndex = [];     % open array**
+rightTreeIndex = [];    % open array**
+  for i = 1:150
+    if(inputs(i, best_feature) < bestThreshold)
         leftTreeIndex = horzcat(leftTreeIndex, i);
     else
         rightTreeIndex = horzcat(rightTreeIndex, i);
@@ -153,20 +183,8 @@ end
 function entropy = Calculate_Entropy(p, n)
 	posProb = p / (p+n);
 	negProb = n / (p+n);
-	if posProb == 0
-		entropyOne = 0;
-	else
-		entropyOne = - posProb*log2(posProb);
-	end
 
-	if negProb == 0
-		entropyTwo = 0;
-	else
-		entropyTwo = - negProb*log2(negProb);
-	end
-
-	% entropy = - posProb*log2(posProb) - negProb*log2(negProb)
-	entropy = entropyOne + entropyTwo;
+	entropy = - posProb*log2(posProb) - negProb*log2(negProb);
 end
 
 
