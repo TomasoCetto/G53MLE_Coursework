@@ -77,7 +77,7 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 			% if gain > bestfeatureG
 			% 	bestfeatureG = gain;
 			% end
-			if gain > bestGain
+			if gain >= bestGain
 				bestGain = gain;
 				bestAttribute = i;
 				bestThreshold = threshold;
@@ -144,8 +144,20 @@ end
 function entropy = Calculate_Entropy(p, n)
 	posProb = p / (p+n);
 	negProb = n / (p+n);
+	if posProb == 0
+		entropyOne = 0;
+	else
+		entropyOne = - posProb*log2(posProb);
+	end
 
-	entropy = - posProb*log2(posProb) - negProb*log2(negProb)
+	if negProb == 0
+		entropyTwo = 0;
+	else
+		entropyTwo = - negProb*log2(negProb);
+	end
+
+	% entropy = - posProb*log2(posProb) - negProb*log2(negProb)
+	entropy = entropyOne + entropyTwo
 end
 
 
