@@ -1,24 +1,29 @@
 load('facialPoints.mat');
 load('labels.mat');
 
-inputs = reshape(points,[150, 66*2]);
+inputs = reshape(points,[66*2, 150])';
 % inputs = reshape(points,[66*2,150]);
 targets = labels';
 
-choose_attribute(inputs, targets);
+% intialising tree and subtrees
+    %tree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
+    %leftTree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
+    %rightTree = struct('op', 'test1', 'kids', [leftTree,rightTree], 'class', {0}, 'attribute',i,'threshold', bestThreshold);
 
+
+[best_feature,best_threshold] = choose_attribute(inputs, targets);
+[leftTreeIndex rightTreeIndex] = split(inputs, best_threshold, best_feature);
 % tree = fitctree(inputs,targets);
 
 
 % DrawDecisionTree(tree, "myTree")
 
-
-
+ 
 function [best_feature, best_threshold] = choose_attribute(features, targets)
 
 	% TODO: compare sides to make sure the inputs match
 	
-	[sampleSize, attributeSize] = size(features);		%sampleSize=150, attributeSize=132
+	[sampleSize, attributeSize] = size(features);
 
 
 	% if (sampleSize != targets.length):
@@ -26,21 +31,22 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 		% return
 
 
-	% Calculate the number of positive and negative sampleSize
-	[p, n] = Calculate_Ratio(targets);
-
+	% TODO: Calculate the number of positive and neegativ sampleSize
+	
+	[p, n] = Calculate_Ratio(targets)
 	threshold = 0;
 	bestAttribute = 0;
 	bestThreshold = 0;
-	bestGain = 0; 					%the best gain for all possible combinations
-	gainList = zeros(1,attributeSize);
+	bestGain = 0;bestRemainder = Inf; 					%the best gain for all possible combinations
+	gainList = zeros(1,attributeSize);remainderList = gainList;
 	bestlp = 0;bestln=0;bestrn=0;bestrp=0;
+	entropy = Calculate_Entropy(p,n);
 
-	% attributeSize = 1;
+	% attributes = 10;
+	attributeSize = 80
  	for i=1:attributeSize
-		% calculate the estimate entropy on informatton contaied
-		entropy = Calculate_Entropy(p,n);
-		% bestfeatureG = 0;
+		% TODO: calculate the estimate on informatton contaied
+		bestfeatureG = 0; bestfeatureR = 0;
 		for j=1:sampleSize
 			threshold = features(j,i)
 			leftChild = [];
@@ -50,48 +56,72 @@ function [best_feature, best_threshold] = choose_attribute(features, targets)
 			% rightChildPos = 0;
 			% rightChildNeg = 0;
 
-			for x=1:sampleSize
-				if features(x,i) > threshold
-					leftChild = [leftChild, x];
-					% leftChildNeg++;
-					% leftChildPos++;
-				else
-					rightChild = [rightChild, x];
-					% rightChildNeg++;
-					% rightChildPos++;
-				end
-			end
+			% for x=1:sampleSize
+			% 	if features(x,i) > threshold
+			% 		leftChild = [leftChild, x];
+			% 		% leftChildNeg++;
+			% 		% leftChildPos++;
+			% 	else
+			% 		rightChild = [rightChild, x];
+			% 		% rightChildNeg++;
+			% 		% rightChildPos++;
+			% 	end
+			% end
 
-			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets));
-			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets));
+			[leftChild,rightChild] = split(features, threshold, i);
+
+			[lp, ln] = Calculate_Ratio(getTargets(leftChild,targets))
+			[rp, rn] = Calculate_Ratio(getTargets(rightChild,targets))
 			% remainder = (lp+ln)/(p+n)*Calculate_Entropy(lp, ln) + (rp+rn)/(p+n)*Calculate_Entropy(rp, rn)
 			remainder = Calculate_Remainder(lp,ln,rp,rn)
 			gain = entropy - remainder;
-			% if gain > bestfeatureG
-			% 	bestfeatureG = gain;
-			% end
+			
+			if gain > bestfeatureG
+				bestfeatureG = gain;
+				bestfeatureR = remainder;
+			end
+			
 			if gain > bestGain
 				bestGain = gain;
 				bestAttribute = i;
 				bestThreshold = threshold;
+				bestRemainder = remainder;
 				bestln = ln;bestrp=rp;bestrn=rn;bestlp=lp;
 			end
 		end
-
-		% gainList(i) = bestfeatureG;
+		gainList(i) = bestfeatureG;
+		remainderList(i) = bestfeatureR;
 	end
 
 	best_threshold = bestThreshold
-	bestGain
 	best_feature = bestAttribute
-	% gainList
+	bestGain
+	bestRemainder
 	% return (best_feature, best_threshold)
 	bestlp
-	bestrn
 	bestln
 	bestrp
+	bestrn
+	gainList
+	remainderList
+end    
+
+function [leftTreeIndex rightTreeIndex] = split(inputs, threshold, best_feature)
+leftTreeIndex = [];
+rightTreeIndex = [];
+  for i = 1:length(inputs)
+    if(inputs(i, best_feature) < threshold)
+        leftTreeIndex = horzcat(leftTreeIndex, i);
+    else
+        rightTreeIndex = horzcat(rightTreeIndex, i);
+    end
+        
+  end
 end
 
+
+  
+%end
 
 function t = getTargets(indexes, targets)
 	t = [];
@@ -100,6 +130,7 @@ function t = getTargets(indexes, targets)
 	end
 	% return t;
 end	
+
 
 
 function [positive, negative] = Calculate_Ratio(targets)
@@ -122,14 +153,26 @@ end
 function entropy = Calculate_Entropy(p, n)
 	posProb = p / (p+n);
 	negProb = n / (p+n);
+	if posProb == 0
+		entropyOne = 0;
+	else
+		entropyOne = - posProb*log2(posProb);
+	end
 
-	entropy = - (posProb*log2(posProb)) - (negProb*log2(negProb))
+	if negProb == 0
+		entropyTwo = 0;
+	else
+		entropyTwo = - negProb*log2(negProb);
+	end
+
+	% entropy = - posProb*log2(posProb) - negProb*log2(negProb)
+	entropy = entropyOne + entropyTwo;
 end
 
 
 function remainder = Calculate_Remainder(lp, ln, rp, rn)
 	total = lp+ln+rp+rn;
-	remainder = (lp+ln)/total*Calculate_Entropy(lp, ln) + (rp+rn)/total*Calculate_Entropy(rp, rn)
+	remainder = (lp+ln)/total*Calculate_Entropy(lp, ln) + (rp+rn)/total*Calculate_Entropy(rp, rn);
 end
 
 

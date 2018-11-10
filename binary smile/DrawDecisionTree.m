@@ -95,11 +95,22 @@ if ~isempty(tree.kids)
     end
     line(tree.X, tree.Y, 'marker', '^', 'markersize', 8)
     opText = tree.op;
+    if ~isempty (tree.threshold)
+        thresholdText = tree.threshold;
+        % text(tree.X, tree.Y,num2str(thresholdText),'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom','interpreter', 'none');
+    end
 %     text(tree.X, tree.Y, ['  ' opText], 'HorizontalAlignment', 'left', 'interpreter', 'none')
-    text(tree.X, tree.Y,num2str(opText),'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom','interpreter', 'none');
+    text(tree.X, tree.Y,strcat('   ', num2str(opText), '  '),'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom','interpreter', 'none');
+    % text(tree.X, tree.Y,num2str(thresholdText),'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom','interpreter', 'none');
 else
     opText = tree.op;
+    % thresholdText = tree.threshold;
     line(tree.X, tree.Y, 'marker', '.', 'markersize', 8)
+    if ~isempty (tree.threshold)
+        thresholdText = tree.threshold;
+        % text(tree.X, tree.Y,num2str(thresholdText),'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom','interpreter', 'none');
+    end
 %     text(tree.X, tree.Y, opText, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'interpreter', 'none')
-    text(tree.X, tree.Y, num2str(tree.class) ,'HorizontalAlignment', 'right', 'VerticalAlignment', 'top', 'interpreter', 'none');
+    text(tree.X, tree.Y, num2str(tree.class),'HorizontalAlignment', 'right', 'VerticalAlignment', 'top', 'interpreter', 'none');
+    % text(tree.X, tree.Y,num2str(thresholdText),'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom','interpreter', 'none');
 end

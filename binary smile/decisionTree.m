@@ -1,7 +1,7 @@
 load('facialPoints.mat');
 load('labels.mat');
 
-inputs = reshape(points,[150, 66*2]);
+inputs = reshape(points,[66*2, 150])';
 % inputs = reshape(points,[66*2,150]);
 targets = labels;
 
