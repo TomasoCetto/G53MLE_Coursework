@@ -2,27 +2,28 @@ load('facialPoints.mat');
 load('labels.mat');
 
 inputs = reshape(points,[66*2, 150])';
-% inputs = reshape(points,[66*2,150]);
 targets = labels';
 
 % tree = decisionTreeLearning(inputs, targets);
 % DrawDecisionTree(tree, "myTree")
 
 % tree = fitctree(inputs,targets);
-% DrawDecisionTree(tree, "myTree")
+% view(tree,'mode', 'graph');
 
-% [p, r, f] = 
 crossvalidations(inputs, targets);
 
 function crossvalidations(inputs,targets)
 
     k = 10;
     c = cvpartition(length(inputs),'KFold', k);
+    foldLength = length(targets)/k;
 
-    trees = cell(1,10)
+    trees = cell(1,10);
     recalls = zeros(1,k);
     precisions = zeros(1,k);
     f1s = zeros(1,k);
+    % differences = zeros(k);
+    accuracy = zeros(1, k);
 
     for i=1:c.NumTestSets
         trIDX = training(c,i);
@@ -40,14 +41,17 @@ function crossvalidations(inputs,targets)
         DrawDecisionTree(trees{i}, "myTree")
         %tree = trees{i}
         %use the trained tree to classify my data 
-        outputArray = zeros(size(testingInputs,1));
-        disp(length(testingInputs));
-        for j=1:size(testingInputs, 1)
+        outputArray = zeros(1,foldLength);
+        % disp(length(testingInputs));
+        for j=1:foldLength
             value = evaluateOneSample(trees{i},testingInputs(j,:));
             outputArray(j) = value;
         end
 
         confusion = confusion_matrix(outputArray, testingTargets);
+
+        differences = abs(outputArray - testingTargets);
+        accuracy(i) = 1 - sum(differences)/foldLength;
 
         recalls(i) = confusion(1,1)/(confusion(1,1)+confusion(1,2));
         precisions(i) = confusion(1,1)/(confusion(1,1)+confusion(2,1));
@@ -57,6 +61,7 @@ function crossvalidations(inputs,targets)
     recalls
     precisions
     f1s
+    accuracy
 end
 
 
@@ -69,7 +74,6 @@ function output = evaluateOneSample(tree, input)
             output = evaluateOneSample(tree.kids{1},input);
     else
             output = evaluateOneSample(tree.kids{2},input);
-        % end
     end
 end
     
@@ -77,7 +81,7 @@ end
 function cm = confusion_matrix(outputs, labels)
     % cm = zeros(2);
     tp=0;tn=0;fp=0;fn=0;
-    length(outputs)
+    % length(outputs);
     for i=1:length(outputs)
         if (labels(i) == 1) && (outputs(i)==1)
             tp=tp+1;
@@ -260,12 +264,16 @@ function entropy = Calculate_Entropy(p, n)
 		entropyOne = 0;
 	else
 		entropyOne = - posProb*log2(posProb);
+        % entropy = 0;
+        % return;
 	end
 
 	if negProb == 0
 		entropyTwo = 0;
 	else
 		entropyTwo = - negProb*log2(negProb);
+        % entropy = 0;
+        % return;
 	end
 
 	% entropy = - posProb*log2(posProb) - negProb*log2(negProb)
