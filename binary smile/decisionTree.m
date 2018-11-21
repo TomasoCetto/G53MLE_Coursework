@@ -305,4 +305,3 @@ function label = majority_value(targets)
 end
 
 % function information_Gain
-
