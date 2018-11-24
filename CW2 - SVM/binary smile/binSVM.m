@@ -42,10 +42,10 @@ for i=1:k                               % each iteration performs one time of tr
 
     % Set up Division of Data for Training, Validation, Testing    
     
-    [a,b] = size(trainingTargets)
-    [c,d] = size(trainingInputs)
+    % [a,b] = size(trainingTargets);
+    % [c,d] = size(trainingInputs);
 
-    SVM = fitcsvm(trainingInputs,trainingTargets,'KernelFunction','linear','BoxConstraint',1);
+    SVM = fitcsvm(trainingInputs,trainingTargets,'KernelFunction','linear','BoxConstraint',0.1);
 
     % find the values of features and labels with their corresponding indexes
     testingInputs = zeros(foldLength,numOfFeatures);
