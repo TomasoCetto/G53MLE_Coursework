@@ -4,13 +4,17 @@ load('labels.mat');
 inputs = reshape(points,[66*2, 150])';
 targets = labels';
 
-% tree = decisionTreeLearning(inputs, targets);
-% DrawDecisionTree(tree, "myTree")
+tree = decisionTreeLearning(inputs, targets);
+DrawDecisionTree(tree, "myTree")
+
+newInputs = normalize(inputs);
+newTree = decisionTreeLearning(newInputs,targets);
+DrawDecisionTree(newTree, "newTree")
 
 % tree = fitctree(inputs,targets);
 % view(tree,'mode', 'graph');
 
-crossvalidations(inputs, targets);
+% crossvalidations(inputs, targets);
 
 function crossvalidations(inputs,targets)
 
