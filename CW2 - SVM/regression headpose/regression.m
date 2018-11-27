@@ -19,6 +19,8 @@ hyperparameterInformation = cell(1,40);
 
 rms_errors = zeros(1,k);
 
+errs = zeros(1,k);
+
 for i=1:k
     %obtain indexes for the train/test split
     validPerm = P((i-1)*foldLength+1:i*foldLength); % extract the indexes of validation data
@@ -64,37 +66,29 @@ for i=1:k
     total = 0;
     differences = outputs - testingTargets;
     for j=1:length(differences)
-        square = power(differences(i), 2);
-        total = total + square;
+        sqr = power(differences(j), 2);
+        total = total + sqr;
     end
-    % rms = (1/(2*length(testingTargets)))*total;
-    ms = (1/length(testingTargets))*total;
+    ms = (1/foldLength)*total;
     rms = sqrt(ms);
-    % square = power(differences,2)
-    % total = sum(square)
-    % rms =(1/(2*length(testingTargets)))*sum(power((outputs - testingTargets),2));
-    % rms
+
     rms_errors(i) = rms;
-    oSize = size(outputs)
-    tSize = size(testingTargets)
-    err = immse(outputs,testingTargets);
-    sqrt(err)
+    % err = immse(outputs,testingTargets);
+    % errs(i) = sqrt(err);
     
     %calculate and store network performance
     % performance = perform(nets{i},testingTargets,outputs);
     % perf(i) = performance;
     
-    
-    % Plots
-    % Uncomment these lines to enable various plots.
-    %figure, plotperform(tr)
-    % figure, plottrainstate(tr)
-    %figure, plotconfusion(testingTargets,outputs);
-    % crossval(testingTargets,outputs)
-    % figure, ploterrhist(errors)
-    % err(i) = performance;
-    %% 
-    
 end
+
+    struct.cValue = cValue;
+    struct.pOrder = 2;
+    struct.supportVectors = size(SVM.SupportVectors,1);
+    struct.averageValue = mean(rms_errors);
+    struct.predicted = outputs;
+    hyperparameterInformation{1,iteration} = struct;
+    iteration = iteration + 1;
     rms_errors
+    errs
 % accuracies
