@@ -26,7 +26,7 @@ doDisp = false;  % display flag
 % SMV values
 pOrder = 1;         
 minKScale = 1;  % Kernel Scale: min-max = 1e-3 to 1e3
-maxKScale = 3;
+maxKScale = 10;
 minC = 1;       % c value: min-max = 1e-5 to 1e5
 maxC = 3;
 % Evaluation variables
@@ -54,7 +54,7 @@ for i = 1:10
     currentModelParameters = innerLoop(inputs,targets,3, minKScale,maxKScale,minC,maxC);
     
     %test the model
-    currentModel = fitcsvm(trainingInputs,trainingTargets, 'Standardize',true,'KernelFunction', 'rbf', 'KernelScale',currentModelParameters.kernelScale, 'BoxConstraint',currentModelParameters.cValue) 
+    currentModel = fitcsvm(trainingInputs,trainingTargets, 'Standardize',true,'KernelFunction', 'rbf', 'KernelScale',currentModelParameters.kernelScale, 'BoxConstraint',currentModelParameters.cValue); 
     
     %calculate f1 of this fold
     [predictions, score] = predict(currentModel,testingInputs);
@@ -66,6 +66,8 @@ for i = 1:10
     predictionsMatrix{i} = predictions;
     scoreMatrix{i} = score;
     supportVectors(i) = size(currentModel.SupportVectors,1);
+    
+    
 end
 
 fprintf("\n");
