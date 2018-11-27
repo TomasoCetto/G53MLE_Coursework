@@ -66,8 +66,6 @@ for i = 1:10
     predictionsMatrix{i} = predictions;
     scoreMatrix{i} = score;
     supportVectors(i) = size(currentModel.SupportVectors,1);
-    score
-    predictions
     
 end
 
@@ -94,14 +92,14 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
     hyperparameterInformation = cell(1,10);
     
     %Box constraint values
-    cValueStart = 0.001;
-    cValueEnd = 10000;
-    cValueStep = cValueStart;
+    cValueStart = 1;
+    cValueEnd = 10;
+    cValueStep = 1;
     
     %sigma values
-    kernelScaleStart = 10;
-    kernelScaleEnd = 100;
-    kernelScaleStep = kernelScaleStart;
+    kernelScaleStart = 1;
+    kernelScaleEnd = 10;
+    kernelScaleStep = 1;
     
     %polynomial order
     pOrderStart = 2;
@@ -110,12 +108,8 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
     cValueCount = 1;
     kernelScaleCount = 1;
         
-    %for kernelScale=kernelScaleStart:kernelScaleStep:kernelScaleEnd
-    kernelScale = kernelScaleStart
-    while kernelScale <= kernelScaleEnd
-    %for cValue=cValueStart:cValueStep:cValueEnd
-        cValue = cValueStart
-        while cValue <= cValueEnd
+    for kernelScale=kernelScaleStart:kernelScaleStep:kernelScaleEnd
+        for cValue=cValueStart:cValueStep:cValueEnd
             f1s = zeros(1,k);
             recalls = zeros(1,k);
             precisions = zeros(1,k);
@@ -125,7 +119,7 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
                 [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, numOfExamples, i, P, k, inputs, targets);  
 
                 % training SVM
-                SVM = fitcsvm( trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', kernelScale, 'BoxConstraint', cValue);
+                SVM = fitcsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', kernelScale, 'BoxConstraint', cValue);
                 tPrint("finish " + i + "-fold training SVM: " + tic + " sec");
                 sv = size(SVM.SupportVectors,1);
                 tPrint("sv = " + sv + "(" + size(SVM.SupportVectors,1)/size(SVM.SupportVectors,2)*100 + "%)");
@@ -138,8 +132,8 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
 %                 if precisions(i) + recalls(i) == 0
 %                     f1s(i) = 0
 %                 else
-                    f1s(i) = 2*((precisions(i)*recalls(i))/(precisions(i)+recalls(i)))
-%                 end
+                f1s(i) = 2*((precisions(i)*recalls(i))/(precisions(i)+recalls(i)));
+
                 tPrint("f1 = " + f1s(i));
 
             end     % end of fold cross validation 
@@ -147,7 +141,6 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
             % determine mean f1 value
             f1 = mean(f1s);
            
-
             % store hyperparameters into a structure
             % struct.pOrder = 2;
             struct.cValue = cValue;
@@ -157,31 +150,10 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
             struct.f1 = f1;
             hyperparameterInformation{iteration} = struct;
 
-           % config variables before starting a new loop
-%             stepKScale = changeScale(kernelScale);
-%             kernelScale = kernelScale + stepKScale;
-%             tPrint("C Value: " + cValue + " | c value step: " + stepKScale);
-%             tPrint("Kernel Scale: " + kernelScale + " | kernelScale step: " + stepKScale);
-%             fprintf("|");
             iteration = iteration + 1;
-            cValueCount = cValueCount +1
-            
-            if cValueCount == 10
-                cValueStep = cValueStep*10;
-                cValueCount = 0;
-            end
-            cValue = cValue + cValueStep;
-            display(cValue)
-            display(cValueStep)
             
         end
-        
-        kernelScaleCount = kernelScaleCount +1;
-        if kernelScaleCount == 10
-                kernelScaleStep = kernelScaleStep*10;
-                kernelScaleCount = 0;
-        end
-        kernelScale = kernelScale + kernelScaleStep
+
     end
 
     % select the best f1
