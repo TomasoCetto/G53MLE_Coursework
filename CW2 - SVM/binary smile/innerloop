@@ -1,4 +1,4 @@
-function [bestHyperparameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,minC,maxC)
+function [bestHyperParameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,minC,maxC)
 
     % SMV values
     %pOrder = 1;         
@@ -8,16 +8,16 @@ function [bestHyperparameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,
     % maxC = 1000;
     
     numOfExamples = (k-1)*size(inputs,1)/k; % numOfExamples = 135
-    numOfFeatures = size(inputs,2);         % inputWidth = 132
+    %numOfFeatures = size(inputs,2);         % inputWidth = 132
     foldLength = size(inputs,1)/k;          % foldLength = 15
     P = randperm(size(inputs,1));           % random permutation containing all index of single data point
 
     iteration = 1;
     hyperparameterInformation = cell(1,10);
-    cValue = minC;
+    %cValue = minC;
 %     while cValue <= maxC
-    for cValue=1:5
-        for kernelScale = 1:5
+    for cValue=1:maxC
+        for kernelScale = 1:maxKScale
 %         kernelScale = minKScale;    % initial kernelScale
 %         while kernelScale <= maxKScale
             f1s = zeros(1,k);
@@ -55,7 +55,6 @@ function [bestHyperparameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,
             struct.supportVectorsRatio = struct.supportVectors / numOfExamples;
             struct.f1 = f1;
             hyperparameterInformation{iteration} = struct;
-            iteration = iteration+1;
 
            % config variables before starting a new loop
 %             stepKScale = changeScale(kernelScale);
@@ -66,20 +65,24 @@ function [bestHyperparameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,
              iteration = iteration + 1;
 
         end
-
+    end
+    
+    hyperparameterInformation
 
     % select the best f1
     bestf1 = 0;
     for i=1:length(hyperparameterInformation)
-        currentf1 = hyperparameterInformation{i}.f1;
+        currentf1 = hyperparameterInformation{1}.f1;
         if currentf1 > bestf1
             bestf1 = hyperparameterInformation{i}.f1;
-            bestHyperParameter = hyperparameterInformation{i};
+            bestHyperParameter = hyperparameterInformation{1,i};
         end
     end
-    disp("The best hyperparameter regarding to f1: ");
-    disp(bestHyperParameter);
+    
+%     disp("The best hyperparameter regarding to f1: ");
+%     disp(bestHyperParameter);
 
+    
 end
 % Start of CV Partition
 
