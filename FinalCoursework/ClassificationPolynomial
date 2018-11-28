@@ -5,6 +5,8 @@ disp("*Clear all previous data");
 % prepare data
 load('facialPoints.mat');
 load('labels.mat');
+load('PermutationClassification.mat')
+
 inputs = reshape(points,[66*2,150])';   % samples x features
 targets = labels;                       % samples x classes
 
@@ -14,7 +16,7 @@ k = 10;
 numOfExamples = (k-1)*size(inputs,1)/k; 
 numOfFeatures = size(inputs,2);         
 foldLength = size(inputs,1)/k;          
-P = randperm(size(inputs,1));           
+P = Per;         
 
 % variables
 global doDisp;  
