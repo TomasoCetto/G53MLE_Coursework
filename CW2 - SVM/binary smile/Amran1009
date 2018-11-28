@@ -55,7 +55,7 @@ for i = 1:10
     %test the model
     currentModel = fitcsvm(trainingInputs,trainingTargets, 'Standardize',true,'KernelFunction', 'rbf', 'KernelScale',currentModelParameters.sigmaValue, 'BoxConstraint',currentModelParameters.cValue); 
     
-    %calculate f1 of this fold
+     %calculate f1 of this fold
     [predictions, score] = predict(currentModel,testingInputs);
     confusion = confusion_matrix(predictions, testingTargets);
     recalls(i) = confusion(1,1)/(confusion(1,1)+confusion(1,2));
@@ -63,13 +63,17 @@ for i = 1:10
     f1s(i) = 2*((precisions(i)*recalls(i))/(precisions(i)+recalls(i)));
     tPrint("f1 = " + f1s(i));
     predictionsMatrix{i} = predictions;
+    SVMBinaryPredictionsMat = [SVMBinaryPredictionsMat predictions];
+    
     scoreMatrix{i} = score;
     supportVectors(i) = size(currentModel.SupportVectors,1);
     
 end
 
+SVMBinaryPredictions = SVMBinaryPredictionsMat(:);
 fprintf("\n");
 disp("time stamp: " + toc + " sec");    % stamp total training duration
+
 
 
 %                           End of process
