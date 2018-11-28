@@ -7,9 +7,9 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k, minKScale,maxKScale,
     % minC = 0.001;       % c value: min-max = 1e-5 to 1e5
     % maxC = 1000;
     
-    numOfExamples = (k-1)*size(inputs,1)/k; % numOfExamples = 135
+    numOfExamples = (k-1)*size(inputs,1)/k; % numOfExamples = 90
     %numOfFeatures = size(inputs,2);         % inputWidth = 132
-    foldLength = size(inputs,1)/k;          % foldLength = 15
+    foldLength = size(inputs,1)/k;          % foldLength = 45
     P = randperm(size(inputs,1));           % random permutation containing all index of single data point
 
     iteration = 1;

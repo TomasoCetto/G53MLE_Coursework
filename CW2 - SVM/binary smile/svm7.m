@@ -187,17 +187,17 @@ function cm = confusion_matrix(outputs, labels)
 % cm = zeros(2);
 tp=0;tn=0;fp=0;fn=0;
 % length(outputs);
-for i=1:length(outputs)
-    if (labels(i) == 1) && (outputs(i)==1)
-        tp=tp+1;
-    elseif (labels(i) == 0) && (outputs(i)==0)
-        tn=tn+1;
-    elseif (labels(i) == 1) && (outputs(i)==0)
-        fn=fn+1;
-    else
-        fp=fp+1;
+    for i=1:length(outputs)
+        if (labels(i) == 1) && (outputs(i)==1)
+            tp=tp+1;
+        elseif (labels(i) == 0) && (outputs(i)==0)
+            tn=tn+1;
+        elseif (labels(i) == 1) && (outputs(i)==0)
+            fn=fn+1;
+        else
+            fp=fp+1;
+        end
     end
-end
 cm = [tp, fn; fp, tn];
 end     % end of confusion_matrix
 
