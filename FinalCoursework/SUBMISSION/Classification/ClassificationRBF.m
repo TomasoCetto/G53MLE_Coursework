@@ -1,9 +1,12 @@
+clear all;  % ***Clear all previous data before executing this code***
 
 disp("*Clear all previous data");
+
 % prepare data
 
 load('facialPoints.mat');
 load('labels.mat');
+
 
 inputs = reshape(points,[66*2,150])';   % samples x features
 targets = labels;                       % samples x classes
@@ -12,7 +15,7 @@ targets = labels;                       % samples x classes
 
 k = 10;
 numOfExamples = (k-1)*size(inputs,1)/k; 
-numOfFeatures = size(inputs,2);        
+numOfFeatures = size(inputs,2);         
 foldLength = size(inputs,1)/k;          
 P = randperm(size(inputs,1));         
 
@@ -34,6 +37,7 @@ supportVectors = zeros(1,10);
 predictionCat = [];
 
 %outerloop
+
 for i = 1:10
 
     [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, numOfExamples, i, P, k, inputs , targets);  
@@ -49,7 +53,8 @@ for i = 1:10
     confusion = confusion_matrix(predictions, testingTargets);
     recalls(i) = confusion(1,1)/(confusion(1,1)+confusion(1,2));
     precisions(i) = confusion(1,1)/(confusion(1,1)+confusion(2,1));
-    f1s(i) = 2*((precisions(i)*recalls(i))/(precisions(i)+recalls(i)));
+    f1s(i) = 2*((precisions(i)*recalls(i))/(precisions(i)+recalls(i)))
+    tPrint("f1 = " + f1s(i));
     predictionsMatrix{i} = predictions;
     scoreMatrix{i} = score;
     supportVectors(i) = size(currentModel.SupportVectors,1);
@@ -67,16 +72,16 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
     P = randperm(size(inputs,1));           % random permutation containing all index of single data point
 
     iteration = 1;
-
     hyperparameterInformation = cell(1,5);
 
     %Box constraint values
     cValues = [0.01, 0.05, 0.1, 0.5 , 1 , 5 , 10, 50, 100, 500, 1000];
 
-    %polynomial order
-    pOrder = [2,3,4];
+    %sigma values
+    sigmaValues = [0.01, 0.05,  1 , 5 , 10, 50, 100, 500, 1000];
 
-    for pIndex=1:length(pOrder)
+
+    for sigmaIndex=1:length(sigmaValues)
 
         for cIndex=1:length(cValues)
 
@@ -91,7 +96,8 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
 
                 % training SVM
 
-                SVM = fitcsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'polynomial', 'PolynomialOrder', pOrder(pIndex), 'BoxConstraint', cValues(cIndex));
+                SVM = fitcsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', sigmaValues(sigmaIndex), 'BoxConstraint', cValues(cIndex));
+
                 sv = size(SVM.SupportVectors,1);
 
                 % prediction and evaluation. 
@@ -108,8 +114,9 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
             f1 = mean(f1s);
 
             % store hyperparameters into a structure
+
+            struct.pOrder = pOrder(pIndex);
             struct.cValue = cValues(cIndex);
-            struct.sigmaValue = sigmaValues(sigmaIndex);
             struct.supportVectors = size(SVM.SupportVectors,1);
             struct.supportVectorsRatio = struct.supportVectors / size(inputs,1);
             struct.f1 = f1;
@@ -138,13 +145,17 @@ function [bestHyperParameter] = innerLoop(inputs,targets,k)
         end
 
     end
-
+    
 end
+
+
 
 %Start of confusion matrix
 function cm = confusion_matrix(outputs, labels)
 
 tp=0;tn=0;fp=0;fn=0;
+
+% length(outputs);
 
 for i=1:length(outputs)
 
@@ -173,11 +184,13 @@ cm = [tp, fn; fp, tn];
 end
 
 % Start of CV Partition
+
 function [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, numOfExamples, i, P, k, inputs, targets)
 
     validPerm = P((i-1)*foldLength+1:i*foldLength); % extract the indexes of validation data
 
     % the remaining are indexes of training data
+
     if i==1
 
         trainPerm = P(foldLength+1:end);
@@ -195,11 +208,14 @@ function [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCV
     end
 
     % Set up Division of Data for Training, Validation, Testing
+
     % find the values of features and labels with their corresponding indexes
+
     trainingTargets = targets( trainPerm, :);
     trainingInputs = inputs( trainPerm, :);
 
     % find the values of features and labels with their corresponding indexes
+
     testingTargets = targets( validPerm, :);
     testingInputs = inputs( validPerm, :);
 

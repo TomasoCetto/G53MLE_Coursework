@@ -252,8 +252,6 @@ function [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCV
         trainPerm = [trainPerm1,trainPerm2];
     end
 
-    % Set up Division of Data for Training, Validation, Testing
-
     % find the values of features and labels with their corresponding indexes
 
     trainingTargets = targets( trainPerm, :);
