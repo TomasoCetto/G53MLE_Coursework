@@ -23,7 +23,7 @@ SVMrbfPredictionsMat = [];
 allModels = {};
 predictionCat = [];
 
-%outerloop
+%Outerloop      can use parfor loop to run in parellel, thus saving time
 for i = 1:k
     [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, i, P, k, inputs , targets);  
     currentModelParameters = innerLoop(trainingInputs,trainingTargets,3);
@@ -38,7 +38,7 @@ for i = 1:k
     supportVectors(i) = size(currentModel.SupportVectors,1);
 
 end
-predictionCat = vertcat(predictionCat,predictionsMatrix(:));
+predictionCat = vertcat(predictionCat,predictionsMatrix{:});
 
 
 %inner loop function

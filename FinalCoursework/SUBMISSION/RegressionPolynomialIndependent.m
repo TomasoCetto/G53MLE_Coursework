@@ -22,7 +22,7 @@ SVMPolynomialPredictionsMat = [];
 allModels = {};
 predictionCat = [];
 
-%outerloop
+%outerloop: can use parfor loop to run them in parallel
 for i = 1:k
 
     [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, i, P, k, inputs , targets);  
@@ -38,7 +38,7 @@ for i = 1:k
     predictionsMatrix{i} = predictions;
     supportVectors(i) = size(currentModel.SupportVectors,1);
 end
-predictionCat = vertcat(predictionCat,predictionsMatrix(:));
+predictionCat = vertcat(predictionCat,predictionsMatrix{:});
 
 
 %inner loop function

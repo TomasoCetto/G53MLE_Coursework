@@ -12,7 +12,7 @@ P = randperm(size(inputs,1));
 
 k = 10;
 numOfFeatures = size(inputs,2);         % inputWidth = 132
-foldLength = size(inputs,1)/k;          % foldLength = 15
+foldLength = round(size(inputs,1)/k);          % foldLength = 15
 
 %Outerloop returns
 rms_errors = zeros(1,10);
@@ -26,9 +26,10 @@ predictionCat = [];
 %outerloop
 for i = 1:k
     [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, i, P, k, inputs , targets);  
-    currentModelParameters = innerLoop(trainingInputs,trainingTargets,3);
+    % currentModelParameters = innerLoop(trainingInputs,trainingTargets,3);
     %test the model
-    currentModel = fitrsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', currentModelParameters.sigmaValue, 'BoxConstraint', currentModelParameters.cValue, 'Epsilon', currentModelParameters.epsilonValue);
+    % currentModel = fitrsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', currentModelParameters.sigmaValue, 'BoxConstraint', currentModelParameters.cValue, 'Epsilon', currentModelParameters.epsilonValue);
+    currentModel = fitrsvm(trainingInputs, trainingTargets, 'Standardize', true, 'KernelFunction', 'rbf', 'KernelScale', 1, 'BoxConstraint', 10, 'Epsilon', 10);
     allModels{i} = currentModel;
     %calculate f1 of this fold
     predictions = predict(currentModel,testingInputs);
@@ -38,7 +39,7 @@ for i = 1:k
     supportVectors(i) = size(currentModel.SupportVectors,1);
 
 end
-predictionCat = vertcat(predictionCat,predictionsMatrix(:));
+predictionCat = vertcat(predictionCat,predictionsMatrix{:});
 
 
 %inner loop function
