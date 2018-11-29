@@ -4,7 +4,6 @@ disp("*Clear all previous data");
 
 load('facialPoints.mat');
 load('labels.mat');
-load('PermutationClassification.mat')
 
 inputs = reshape(points,[66*2,150])';   % samples x features
 targets = labels;                       % samples x classes
