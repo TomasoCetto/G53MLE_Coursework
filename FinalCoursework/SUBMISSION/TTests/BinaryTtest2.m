@@ -8,7 +8,7 @@ load('LinearSVMClassification.mat')
 NNaccuracy = binaryNNoutputs;
 DTAccuracy = DecisionTreePredictionResult;
 SVMrbf = SVMGaussianPredictions;
-SVMLinear =linearPredictions;
+SVMLinear =predictionCat;
 SVMPolynomial = SVMPolynomialPredictions;
 
 
