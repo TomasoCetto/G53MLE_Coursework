@@ -1,6 +1,6 @@
 load ('BinaryNNPredictions.mat')
 load ('DecisionTreePrediction.mat')
-load('SVMBinaryPredictions.mat')
+load('SVMRBFPredictions.mat')
 SVMGaussianPredictions = SVMPolynomialPredictions;
 load('SVMPolynomialPredictions.mat')
 load('LinearSVMClassification.mat')
