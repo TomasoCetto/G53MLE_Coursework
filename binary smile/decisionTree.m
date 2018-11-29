@@ -1,26 +1,38 @@
+clear all
+
 load('facialPoints.mat');
 load('labels.mat');
+load('Permutation.mat')
 
 inputs = reshape(points,[66*2, 150])';
 targets = labels';
 
-tree = decisionTreeLearning(inputs, targets);
-DrawDecisionTree(tree, "myTree")
+% P = Per
 
-newInputs = normalize(inputs);
-newTree = decisionTreeLearning(newInputs,targets);
-DrawDecisionTree(newTree, "newTree")
+% tree = decisionTreeLearning(inputs, targets);
+% DrawDecisionTree(tree, "myTree")
+
+% newInputs = normalize(inputs);
+% newTree = decisionTreeLearning(newInputs,targets);
+% DrawDecisionTree(newTree, "newTree")
 
 % tree = fitctree(inputs,targets);
 % view(tree,'mode', 'graph');
 
-% crossvalidations(inputs, targets);
+f1s = crossvalidations(inputs, targets, Per)
 
-function crossvalidations(inputs,targets)
+function [f1s] = crossvalidations(inputs,targets, Per)
 
+    % Divide the data
     k = 10;
-    c = cvpartition(length(inputs),'KFold', k);
-    foldLength = length(targets)/k;
+    trainLength = (k-1)*length(inputs)/k;   % trainLength = 135
+    inputWidth = size(inputs,2);            % inputWidth = 132
+    foldLength = length(inputs)/k;          % foldLength = 15
+    P = Per           % random permutation containing all index of single data point
+
+    % k = 10;
+    % c = cvpartition(length(inputs),'KFold', k);
+    % foldLength = length(targets)/k;
 
     trees = cell(1,10);
     recalls = zeros(1,k);
@@ -29,20 +41,65 @@ function crossvalidations(inputs,targets)
     % differences = zeros(k);
     accuracy = zeros(1, k);
 
-    for i=1:c.NumTestSets
-        trIDX = training(c,i);
-        teIDX = test(c,i);
+    DTPredictionResult = [];
 
-        trainingInputs = inputs(trIDX,:);
-        trainingTargets = targets(trIDX);
+    for i=1:k
+        % trIDX = training(c,i);
+        % teIDX = test(c,i);
 
-        testingInputs = inputs(teIDX,:);
-        testingTargets = targets(teIDX);
+        validPerm = P((i-1)*foldLength+1:i*foldLength); % extract the indexes of validation data
 
+        % the remaining are indexes of training data
+        if i==1
+            trainPerm = P(foldLength+1:end);
+        elseif i==k
+            trainPerm = P(1:trainLength);
+        else
+            trainPerm1 = P(1:(i-1)*foldLength);
+            trainPerm2 = P(i*foldLength+1:end);
+            trainPerm = [trainPerm1,trainPerm2];
+        end
+
+        trainPerm;
+        
+        % initialize the features and labels sets of training data
+        trainingInputs = zeros(trainLength,inputWidth);
+        trainingTargets = zeros(1, trainLength);
+    
+        % find the values of features and labels with their corresponding indexes
+        size(inputs);
+        size(trainingInputs);
+        for j=1:trainLength
+            trainingTargets(j) = targets(trainPerm(j));
+            inputs(trainPerm(j),:);
+            trainingInputs(j,:) = inputs(trainPerm(j),:);
+            trainingInputs(j);
+        end
+
+        trainingTargets;
+        TI = trainingInputs;
+
+
+        % trainingInputs = inputs(trIDX,:);
+        % trainingTargets = targets(trIDX);
+
+        % testingInputs = inputs(teIDX,:);
+        % testingTargets = targets(teIDX);
+
+        testingInputs = zeros(foldLength,inputWidth);
+        testingTargets = zeros(1, foldLength);
+
+        for j=1:foldLength
+            testingTargets(j) = targets(validPerm(j));
+            testingInputs(j,:) = inputs(validPerm(j),:);
+        end
+
+        testingTargets;
+        testingInputs;
 
         %Create 10 trained trees
         trees{i} = decisionTreeLearning(trainingInputs,trainingTargets);
-        DrawDecisionTree(trees{i}, "myTree")
+        % DrawDecisionTree(trees{i}, "myTree")
         %tree = trees{i}
         %use the trained tree to classify my data 
         outputArray = zeros(1,foldLength);
@@ -51,6 +108,9 @@ function crossvalidations(inputs,targets)
             value = evaluateOneSample(trees{i},testingInputs(j,:));
             outputArray(j) = value;
         end
+
+        DTPredictionResult = [DTPredictionResult, outputArray]
+
 
         confusion = confusion_matrix(outputArray, testingTargets);
 
@@ -66,6 +126,8 @@ function crossvalidations(inputs,targets)
     precisions
     f1s
     accuracy
+    DecisionTreePredictionResult = DTPredictionResult
+    % save()
 end
 
 

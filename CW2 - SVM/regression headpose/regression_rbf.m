@@ -10,7 +10,7 @@ disp("*Clear all previous data");
 
 load('facialPoints.mat');
 load('headpose.mat');
-load('Perm.mat');
+% load('Perm.mat');
 
 inputs = reshape(points,[66*2,8955])';   % samples x features
 
@@ -26,9 +26,9 @@ numOfExamples = (k-1)*size(inputs,1)/k; % numOfExamples = 135
 
 numOfFeatures = size(inputs,2);         % inputWidth = 132
 
-foldLength = size(inputs,1)/k;          % foldLength = 15
+foldLength = round(size(inputs,1)/k);          % foldLength = 15
 
-%P = randperm(size(inputs,1));           % random permutation containing all index of single data point
+P = randperm(size(inputs,1));           % random permutation containing all index of single data point
 
 
 
@@ -91,11 +91,11 @@ for i = 1:10
 
     supportVectors(i) = size(currentModel.SupportVectors,1);
 
-    SVMRBFPredictions = [SVMRBFPredictionsMat predictions];
+    SVMRBFPredictionsMat = [SVMRBFPredictionsMat predictions];
 
 end
 
-SVMRBFPredictions = SVMRBFPredictionsMat(:);
+SVMRBFPredictionsMat = SVMRBFPredictionsMat(:);
 
 fprintf("\n");
 
@@ -319,42 +319,30 @@ end
 
 function [trainingInputs, trainingTargets, testingInputs, testingTargets] = myCVPartition(foldLength, numOfExamples, i, P, k, inputs, targets)
 
-    validPerm = P((i-1)*foldLength+1:i*foldLength); % extract the indexes of validation data
+    if i == k
+        validPerm = P(foldLength*(k-1)+1:end)
+    else
+        validPerm = P((i-1)*foldLength+1:i*foldLength); % extract the indexes of validation data
+    end
 
     % the remaining are indexes of training data
 
     if i==1
-
         trainPerm = P(foldLength+1:end);
-
     elseif i==k
-
-        trainPerm = P(1:numOfExamples);
-
+        trainPerm = P(1:foldLength*(k-1));
     else
-
         trainPerm1 = P(1:(i-1)*foldLength);
-
         trainPerm2 = P(i*foldLength+1:end);
-
         trainPerm = [trainPerm1,trainPerm2];
-
     end
-
     % Set up Division of Data for Training, Validation, Testing
-
     % find the values of features and labels with their corresponding indexes
-
     trainingTargets = targets( trainPerm, :);
-
     trainingInputs = inputs( trainPerm, :);
-
     % find the values of features and labels with their corresponding indexes
-
     testingTargets = targets( validPerm, :);
-
     testingInputs = inputs( validPerm, :);
-
 end
 
 
